@@ -711,6 +711,8 @@ typedef struct {
   LTE_SystemInformationBlockType3_t     *sib3;
   LTE_SystemInformationBlockType1_t     *sib1_BR;
   LTE_SystemInformationBlockType2_t     *sib2_BR;
+  LTE_SystemInformationBlockType5_t     *sib5;
+  LTE_SystemInformationBlockType7_t     *sib7;
   LTE_SystemInformationBlockType1_MBMS_r14_t *sib1_MBMS;
   LTE_SystemInformationBlockType13_r9_t *sib13_MBMS;
   uint8_t       FeMBMS_flag;

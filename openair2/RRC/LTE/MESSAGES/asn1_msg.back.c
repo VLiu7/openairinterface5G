@@ -822,8 +822,8 @@ uint8_t do_SIB1(rrc_eNB_carrier_data_t *carrier,
   LTE_MCC_MNC_Digit_t *dummy_mnc_1;
   LTE_MCC_MNC_Digit_t *dummy_mnc_2;
   asn_enc_rval_t enc_rval;
-  LTE_SchedulingInfo_t schedulingInfo,schedulingInfo2,schedulingInfo3,schedulingInfo7;
-  LTE_SIB_Type_t sib_type,sib_type2,sib_type5,sib_type7;
+  LTE_SchedulingInfo_t schedulingInfo,schedulingInfo2;
+  LTE_SIB_Type_t sib_type,sib_type2;
   uint8_t *buffer;
   LTE_BCCH_DL_SCH_Message_t *bcch_message;
   LTE_SystemInformationBlockType1_t **sib1;
@@ -850,11 +850,7 @@ uint8_t do_SIB1(rrc_eNB_carrier_data_t *carrier,
 
   memset(PLMN_identity_info,0,num_plmn * sizeof(LTE_PLMN_IdentityInfo_t));
   memset(&schedulingInfo,0,sizeof(LTE_SchedulingInfo_t));
-  memset(&schedulingInfo3,0,sizeof(LTE_SchedulingInfo_t));
-  memset(&schedulingInfo7,0,sizeof(LTE_SchedulingInfo_t));
   memset(&sib_type,0,sizeof(LTE_SIB_Type_t));
-  memset(&sib_type5,0,sizeof(LTE_SIB_Type_t));
-  memset(&sib_type7,0,sizeof(LTE_SIB_Type_t));
   if(configuration->eMBMS_M2_configured){
        memset(&schedulingInfo2,0,sizeof(LTE_SchedulingInfo_t));
        memset(&sib_type2,0,sizeof(LTE_SIB_Type_t));
@@ -1249,7 +1245,7 @@ uint8_t do_SIB23(uint8_t Mod_id,
                  int CC_id, BOOLEAN_t brOption, 
                  RrcConfigurationReq *configuration
                 ) {
-  struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member *sib2_part,*sib3_part,*sib5_part,*sib7_part;
+  struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member *sib2_part,*sib3_part;
   int eMTC_configured = configuration->eMTC_configured;
   struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member *sib18_part, *sib19_part, *sib21_part;
   LTE_SL_CommRxPoolList_r12_t *SL_CommRxPoolList; //for SIB18
@@ -1304,37 +1300,15 @@ uint8_t do_SIB23(uint8_t Mod_id,
     exit(-1);
   }
 
-  LTE_SystemInformationBlockType5_t       **sib5        = &RC.rrc[Mod_id]->carrier[CC_id].sib5;
-
-  if (!sib5) {
-    LOG_E(RRC,"[eNB %d] sib5 is null, exiting\n", Mod_id);
-    exit(-1);
-  }
-
-  LTE_SystemInformationBlockType7_t       **sib7        = &RC.rrc[Mod_id]->carrier[CC_id].sib7;
-
-  if (!sib7) {
-    LOG_E(RRC,"[eNB %d] sib5 is null, exiting\n", Mod_id);
-    exit(-1);
-  }
-
   LOG_I(RRC,"[eNB %d] Configuration SIB2/3, eMBMS = %d\n", Mod_id, configuration->eMBMS_configured);
   sib2_part = CALLOC(1,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
   sib3_part = CALLOC(1,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
-  sib5_part = CALLOC(1,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
-  sib7_part = CALLOC(1,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
   memset(sib2_part,0,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
   memset(sib3_part,0,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
-  memset(sib5_part,0,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
-  memset(sib7_part,0,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
   sib2_part->present = LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member_PR_sib2;
   sib3_part->present = LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member_PR_sib3;
-  sib5_part->present = LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member_PR_sib5;
-  sib7_part->present = LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member_PR_sib7;
   *sib2 = &sib2_part->choice.sib2;
   *sib3 = &sib3_part->choice.sib3;
-  *sib5 = &sib5_part->choice.sib5;
-  *sib7 = &sib7_part->choice.sib7;
 
   if ((configuration->eMBMS_configured > 0) && (brOption==false)) {
     sib13_part = CALLOC(1,sizeof(struct LTE_SystemInformation_r8_IEs__sib_TypeAndInfo__Member));
@@ -1821,135 +1795,6 @@ uint8_t do_SIB23(uint8_t Mod_id,
   (*sib3)->ext4->t_ReselectionEUTRA_CE_r13 = CALLOC(1, sizeof(LTE_T_ReselectionEUTRA_CE_r13_t));
   *(*sib3)->ext4->t_ReselectionEUTRA_CE_r13 = 2;
 
-                    // {
-                    //   dl-CarrierFreq 38544,
-                    //   q-RxLevMin -60,
-                    //   p-Max 23,
-                    //   t-ReselectionEUTRA 1,
-                    //   threshX-High 4,
-                    //   threshX-Low 7,
-                    //   allowedMeasBandwidth mbw6,
-                    //   presenceAntennaPort1 TRUE,
-                    //   cellReselectionPriority 3,
-                    //   neighCellConfig '01'B
-                    // },
-  /// (*SIB3)
-  (*sib5)->ext1 = NULL;
-  LTE_InterFreqCarrierFreqInfo_t *interFreqCarrierFreqInfo;
-  interFreqCarrierFreqInfo= CALLOC(1, sizeof(LTE_InterFreqCarrierFreqInfo_t));
-  interFreqCarrierFreqInfo->dl_CarrierFreq=38544;
-  interFreqCarrierFreqInfo->q_RxLevMin=-60;
-  long int temp=23;
-  interFreqCarrierFreqInfo->p_Max=&temp;
-  interFreqCarrierFreqInfo->t_ReselectionEUTRA=1;
-  interFreqCarrierFreqInfo->threshX_High=4;
-  interFreqCarrierFreqInfo->threshX_Low=7;
-  interFreqCarrierFreqInfo->allowedMeasBandwidth=LTE_AllowedMeasBandwidth_mbw6;
-  interFreqCarrierFreqInfo->presenceAntennaPort1=true;
-  long int cellReselectionPriority=0;
-  interFreqCarrierFreqInfo->cellReselectionPriority=&cellReselectionPriority;
-  
-  interFreqCarrierFreqInfo->neighCellConfig.buf = CALLOC(8,1);
-  interFreqCarrierFreqInfo->neighCellConfig.size = 1;
-  interFreqCarrierFreqInfo->neighCellConfig.buf[0] = 1 << 6;
-  interFreqCarrierFreqInfo->neighCellConfig.bits_unused = 6;
-  
-  asn1cSeqAdd(&(*sib5)->interFreqCarrierFreqList.list, interFreqCarrierFreqInfo);
-
-  // sib7 : 
-  //   {
-  //     t-ReselectionGERAN 2,
-  //     carrierFreqsInfoList 
-  //     {
-  //       {
-  //         carrierFreqs 
-  //         {
-  //           startingARFCN 46,
-  //           bandIndicator dcs1800,
-  //           followingARFCNs explicitListOfARFCNs : 
-  //             {
-  //               47,
-  //               48,
-  //               49,
-  //               50,
-  //               51,
-  //               52,
-  //               53,
-  //               54,
-  //               55,
-  //               56,
-  //               57,
-  //               58,
-  //               59,
-  //               60,
-  //               61,
-  //               62,
-  //               63,
-  //               64,
-  //               512,
-  //               514,
-  //               515,
-  //               516,
-  //               517,
-  //               518,
-  //               519,
-  //               520,
-  //               521,
-  //               522,
-  //               524,
-  //               526,
-  //               527
-  //             }
-  //         },
-  //         commonInfo 
-  //         {
-  //           cellReselectionPriority 1,
-  //           ncc-Permitted '11111111'B,
-  //           q-RxLevMin 8,
-  //           threshX-High 5,
-  //           threshX-Low 7
-  //         }
-  //       }
-  //     }
-  //   },
-
-  /// (*SIB7)
-  (*sib7)->t_ReselectionGERAN=2;
-  (*sib7)->carrierFreqsInfoList = CALLOC(1, sizeof(struct LTE_CarrierFreqsInfoListGERAN));
-  LTE_CarrierFreqsInfoGERAN_t *carrierFreqsInfoGERAN;
-  carrierFreqsInfoGERAN=CALLOC(1, sizeof(LTE_CarrierFreqsInfoGERAN_t));
-  carrierFreqsInfoGERAN->carrierFreqs.startingARFCN=46;
-  carrierFreqsInfoGERAN->carrierFreqs.bandIndicator=0;
-  carrierFreqsInfoGERAN->carrierFreqs.followingARFCNs.present=LTE_CarrierFreqsGERAN__followingARFCNs_PR_explicitListOfARFCNs;
-  // long temp_list[31]={47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,512,515,517,518,519,520,522,523,527,529,531,533,536};
-  // int i=0;
-  // for(i=0;i<31;i++){
-  //   asn1cSeqAdd(&carrierFreqsInfoGERAN->carrierFreqs.followingARFCNs.choice.explicitListOfARFCNs.list, &temp_list[i]);
-  // }
-  long temp_list[31]={47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,512,515,517,518,519,520,522,523,527,529,531,533,536};
-  int i=0;
-  for(i=0;i<2;i++){
-    asn1cSeqAdd(&carrierFreqsInfoGERAN->carrierFreqs.followingARFCNs.choice.explicitListOfARFCNs.list, &temp_list[i]);
-  }
-  // long temp1=47;
-  // long temp2=48;
-  // asn1cSeqAdd(&carrierFreqsInfoGERAN->carrierFreqs.followingARFCNs.choice.explicitListOfARFCNs.list, &temp1);
-  // asn1cSeqAdd(&carrierFreqsInfoGERAN->carrierFreqs.followingARFCNs.choice.explicitListOfARFCNs.list, &temp2);
-  long int cellReselectionPriority2=0;
-  carrierFreqsInfoGERAN->commonInfo.cellReselectionPriority=&cellReselectionPriority2;
-  carrierFreqsInfoGERAN->commonInfo.ncc_Permitted.buf = CALLOC(8,1);
-  carrierFreqsInfoGERAN->commonInfo.ncc_Permitted.size = 1;
-  carrierFreqsInfoGERAN->commonInfo.ncc_Permitted.buf[0] = 1 << 6;
-  carrierFreqsInfoGERAN->commonInfo.ncc_Permitted.bits_unused = 6;
-
-  carrierFreqsInfoGERAN->commonInfo.q_RxLevMin=8;
-  carrierFreqsInfoGERAN->commonInfo.threshX_High=5;
-  carrierFreqsInfoGERAN->commonInfo.threshX_Low=7;
-  asn1cSeqAdd(&(*sib7)->carrierFreqsInfoList->list, carrierFreqsInfoGERAN);
-
-
-
-
   // SIB13
   // fill in all elements of SIB13 if present
   if (configuration->eMBMS_configured > 0 ) {
@@ -2287,11 +2132,7 @@ uint8_t do_SIB23(uint8_t Mod_id,
                    sib2_part);
   asn1cSeqAdd(&bcch_message->message.choice.c1.choice.systemInformation.criticalExtensions.choice.systemInformation_r8.sib_TypeAndInfo.list,
                    sib3_part);
-  //  wei: set or not set sib5/7
-  // asn1cSeqAdd(&bcch_message->message.choice.c1.choice.systemInformation.criticalExtensions.choice.systemInformation_r8.sib_TypeAndInfo.list,
-  //                  sib5_part);
-  // asn1cSeqAdd(&bcch_message->message.choice.c1.choice.systemInformation.criticalExtensions.choice.systemInformation_r8.sib_TypeAndInfo.list,
-  //                  sib7_part);
+
   if (configuration->eMBMS_configured > 0) {
     asn1cSeqAdd(&bcch_message->message.choice.c1.choice.systemInformation.criticalExtensions.choice.systemInformation_r8.sib_TypeAndInfo.list, sib13_part);
   }
@@ -4197,48 +4038,11 @@ uint8_t do_RRCConnectionRelease(uint8_t                             Mod_id,
   rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.idleModeMobilityControlInfo = NULL;
   rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.nonCriticalExtension=CALLOC(1,
       sizeof(*rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.nonCriticalExtension));
-  // wei: set priority in rrc release
-  // rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.idleModeMobilityControlInfo=CALLOC(1,
-  //     sizeof(*rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.idleModeMobilityControlInfo));
-  // rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.nonCriticalExtension=NULL;
-  
-  // LTE_IdleModeMobilityControlInfo_t *idleModeMobilityControlInfo;
-  // idleModeMobilityControlInfo=CALLOC(1,sizeof(*idleModeMobilityControlInfo));
-  // struct LTE_FreqPriorityListEUTRA *freqPriorityListEUTRA;
-  // freqPriorityListEUTRA = CALLOC(1,sizeof(*freqPriorityListEUTRA));
-  // struct LTE_FreqPriorityEUTRA freqPriorityEUTRA1;
-  // freqPriorityEUTRA1.carrierFreq=38950;
-  // freqPriorityEUTRA1.cellReselectionPriority=7;
-  // asn1cSeqAdd(&freqPriorityListEUTRA->list,&freqPriorityEUTRA1);
-
-  // struct LTE_FreqPriorityEUTRA freqPriorityEUTRA2;
-  // freqPriorityEUTRA2.carrierFreq=38400;
-  // freqPriorityEUTRA2.cellReselectionPriority=6;
-  // asn1cSeqAdd(&freqPriorityListEUTRA->list,&freqPriorityEUTRA2);
-
-  // struct LTE_FreqPriorityEUTRA freqPriorityEUTRA3;
-  // freqPriorityEUTRA3.carrierFreq=36275;
-  // freqPriorityEUTRA3.cellReselectionPriority=1;
-  // asn1cSeqAdd(&freqPriorityListEUTRA->list,&freqPriorityEUTRA3);
-
-  // struct LTE_FreqPriorityEUTRA freqPriorityEUTRA4;
-  // freqPriorityEUTRA4.carrierFreq=38544;
-  // freqPriorityEUTRA4.cellReselectionPriority=0;
-  // asn1cSeqAdd(&freqPriorityListEUTRA->list,&freqPriorityEUTRA4); 
-
-  // idleModeMobilityControlInfo->freqPriorityListEUTRA=freqPriorityListEUTRA;
-  // // e_LTE_IdleModeMobilityControlInfo__t320 t320;
-  // // t320=LTE_IdleModeMobilityControlInfo__t320_min180;
-  // long int t=LTE_IdleModeMobilityControlInfo__t320_min180;
-  // idleModeMobilityControlInfo->t320=&t;
-  // rrcConnectionRelease->criticalExtensions.choice.c1.choice.rrcConnectionRelease_r8.idleModeMobilityControlInfo=idleModeMobilityControlInfo;
   enc_rval = uper_encode_to_buffer(&asn_DEF_LTE_DL_DCCH_Message,
                                    NULL,
                                    (void *)&dl_dcch_msg,
                                    buffer,
                                    buffer_size);
-  // free(idleModeMobilityControlInfo);
-  // idleModeMobilityControlInfo = NULL;
   return((enc_rval.encoded+7)/8);
 }
 
